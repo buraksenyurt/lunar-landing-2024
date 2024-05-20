@@ -196,30 +196,44 @@ impl Game {
     }
 
     pub fn handle_event(&mut self, event: sdl2::event::Event) {
-        let play_command = match event {
-            sdl2::event::Event::KeyDown {
-                keycode: Some(keycode),
-                ..
-            } => self.play_commands.get(&keycode).map(|c| c.as_ref()),
-            _ => None,
-        };
-
-        // if let Some(command) = play_command {
-        //     command.execute(self);
-        // }
-
-        let menu_command = match event {
-            sdl2::event::Event::KeyDown {
-                keycode: Some(keycode),
-                ..
-            } => self.menu_commands.get(&keycode).map(|c| c.as_ref()),
-            _ => None,
-        };
-
-        if let Some(command) = menu_command {
-            if let Some(new_state) = command.execute() {
-                self.state = new_state;
+        match self.state {
+            GameState::Menu | GameState::OutOfFuel | GameState::JobsDone | GameState::MeteorHit => {
+                if let sdl2::event::Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } = event
+                {
+                    if let Some(command) = self.menu_commands.get(&keycode).map(|c| c.as_ref()) {
+                        if let Some(new_state) = command.execute() {
+                            self.state = new_state;
+                        }
+                    }
+                }
             }
+            GameState::Playing => {
+                if let sdl2::event::Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } = event
+                {
+                    if let Some(command) = self.play_commands.get(&keycode).map(|c| c.as_ref()) {
+                        command.execute(&mut self.shuttle, self.delta_second);
+                    }
+                }
+
+                if let sdl2::event::Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } = event
+                {
+                    if let Some(command) = self.menu_commands.get(&keycode).map(|c| c.as_ref()) {
+                        if let Some(new_state) = command.execute() {
+                            self.state = new_state;
+                        }
+                    }
+                }
+            }
+            _ => {}
         }
     }
 
@@ -228,18 +242,21 @@ impl Game {
             self.handle_event(event);
         }
 
-        self.calc_distances();
-        self.move_meteors(self.delta_second.as_secs_f32());
-        self.check_out_of_ranges();
-        self.respawn_meteors();
-        if self.check_meteor_shuttle_collisions() {
-            self.state = GameState::MeteorHit;
-            return Some(GameState::MeteorHit);
+        if self.state == GameState::Playing {
+            self.calc_distances();
+            self.move_meteors(self.delta_second.as_secs_f32());
+            self.check_out_of_ranges();
+            self.respawn_meteors();
+            if self.check_meteor_shuttle_collisions() {
+                self.state = GameState::MeteorHit;
+                return Some(GameState::MeteorHit);
+            }
+
+            if let Some(value) = self.check_shuttle() {
+                return value;
+            }
         }
 
-        if let Some(value) = self.check_shuttle() {
-            return value;
-        }
         None
     }
 

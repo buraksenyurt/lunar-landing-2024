@@ -1,8 +1,8 @@
-use crate::entity::GameState;
-use crate::game::Game;
+use crate::entity::{GameState, Shuttle};
+use std::time::Duration;
 
 pub trait DirectionCommand {
-    fn execute(&self, game: &mut Game);
+    fn execute(&self, shuttle: &mut Shuttle, delta_second: Duration);
 }
 
 pub trait MenuCommand {
@@ -18,28 +18,28 @@ pub struct StartNewGameCommand;
 pub struct ExitGameCommand;
 
 impl DirectionCommand for MoveLeftCommand {
-    fn execute(&self, game: &mut Game) {
-        game.shuttle.velocity.x -= 30. * game.delta_second.as_secs_f32();
+    fn execute(&self, shuttle: &mut Shuttle, delta_second: Duration) {
+        shuttle.velocity.x -= 30. * delta_second.as_secs_f32();
     }
 }
 
 impl DirectionCommand for MoveRightCommand {
-    fn execute(&self, game: &mut Game) {
-        game.shuttle.velocity.x += 30. * game.delta_second.as_secs_f32();
+    fn execute(&self, shuttle: &mut Shuttle, delta_second: Duration) {
+        shuttle.velocity.x += 30. * delta_second.as_secs_f32();
     }
 }
 
 impl DirectionCommand for MoveUpCommand {
-    fn execute(&self, game: &mut Game) {
-        game.shuttle.velocity.y -= 50. * game.delta_second.as_secs_f32();
-        game.shuttle.fuel_level -= 10;
+    fn execute(&self, shuttle: &mut Shuttle, delta_second: Duration) {
+        shuttle.velocity.y -= 50. * delta_second.as_secs_f32();
+        shuttle.fuel_level -= 10;
     }
 }
 
 impl DirectionCommand for MoveDownCommand {
-    fn execute(&self, game: &mut Game) {
-        game.shuttle.velocity.y += 75. * game.delta_second.as_secs_f32();
-        game.shuttle.fuel_level -= 2;
+    fn execute(&self, shuttle: &mut Shuttle, delta_second: Duration) {
+        shuttle.velocity.y += 75. * delta_second.as_secs_f32();
+        shuttle.fuel_level -= 2;
     }
 }
 
