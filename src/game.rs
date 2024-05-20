@@ -1,5 +1,7 @@
 use crate::constants::*;
 use crate::entity::*;
+use crate::setup::*;
+use crate::ui::*;
 use crate::viper::*;
 use rand::prelude::ThreadRng;
 use rand::{thread_rng, Rng};
@@ -10,9 +12,9 @@ use sdl2::render::{Canvas, WindowCanvas};
 use sdl2::video::Window;
 use sdl2::EventPump;
 use std::cmp;
+use std::collections::HashMap;
 use std::time::Duration;
 
-#[derive(PartialEq)]
 pub struct Game {
     pub shuttle: Shuttle,
     pub mountain_points: Vec<Point>,
@@ -22,6 +24,9 @@ pub struct Game {
     pub state: GameState,
     pub delta_second: Duration,
     pub distances: Vec<f32>,
+    pub hud: Hud,
+    pub play_commands: HashMap<Keycode, Box<dyn DirectionCommand>>,
+    pub menu_commands: HashMap<Keycode, Box<dyn MenuCommand>>,
 }
 
 impl Game {
@@ -86,6 +91,8 @@ impl Game {
             stars.push(star);
         }
 
+        let (play_commands, menu_commands) = setup_commands().unwrap();
+
         Self {
             shuttle: Shuttle::new(),
             mountain_points,
@@ -95,23 +102,10 @@ impl Game {
             state: GameState::Menu,
             delta_second: Duration::default(),
             distances: vec![],
+            hud: Hud::new(),
+            play_commands,
+            menu_commands,
         }
-    }
-
-    pub fn update(&mut self) -> Option<GameState> {
-        self.calc_distances();
-        self.move_meteors(self.delta_second.as_secs_f32());
-        self.check_out_of_ranges();
-        self.respawn_meteors();
-        if self.check_meteor_shuttle_collisions() {
-            self.state = GameState::MeteorHit;
-            return Some(GameState::MeteorHit);
-        }
-
-        if let Some(value) = self.check_shuttle() {
-            return value;
-        }
-        None
     }
 
     fn calc_distances(&mut self) {
@@ -201,7 +195,58 @@ impl Game {
         false
     }
 
-    pub fn draw(&mut self, canvas: &mut WindowCanvas) -> Result<(), String> {
+    pub fn handle_event(&mut self, event: sdl2::event::Event) {
+        let play_command = match event {
+            sdl2::event::Event::KeyDown {
+                keycode: Some(keycode),
+                ..
+            } => self.play_commands.get(&keycode).map(|c| c.as_ref()),
+            _ => None,
+        };
+
+        // if let Some(command) = play_command {
+        //     command.execute(self);
+        // }
+
+        let menu_command = match event {
+            sdl2::event::Event::KeyDown {
+                keycode: Some(keycode),
+                ..
+            } => self.menu_commands.get(&keycode).map(|c| c.as_ref()),
+            _ => None,
+        };
+
+        if let Some(command) = menu_command {
+            if let Some(new_state) = command.execute() {
+                self.state = new_state;
+            }
+        }
+    }
+
+    pub fn update_game(&mut self, event_pump: &mut EventPump) -> Option<GameState> {
+        for event in event_pump.poll_iter() {
+            self.handle_event(event);
+        }
+
+        self.calc_distances();
+        self.move_meteors(self.delta_second.as_secs_f32());
+        self.check_out_of_ranges();
+        self.respawn_meteors();
+        if self.check_meteor_shuttle_collisions() {
+            self.state = GameState::MeteorHit;
+            return Some(GameState::MeteorHit);
+        }
+
+        if let Some(value) = self.check_shuttle() {
+            return value;
+        }
+        None
+    }
+
+    pub fn draw_game(&mut self, canvas: &mut WindowCanvas) -> Result<(), String> {
+        canvas.set_draw_color(Color::BLACK);
+        canvas.clear();
+
         for i in 0..self.mountain_points.len() - 1 {
             let start = self.mountain_points[i];
             let end = self.mountain_points[i + 1];
@@ -223,6 +268,9 @@ impl Game {
             s.draw(canvas)?;
         }
 
+        self.hud.draw(&self.shuttle, &self.distances, canvas)?;
+
+        canvas.present();
         Ok(())
     }
 }
@@ -231,27 +279,56 @@ impl GameObject for Game {
     fn update(
         &mut self,
         event_pump: &mut EventPump,
-        randomizer: &mut ThreadRng,
+        _randomizer: &mut ThreadRng,
         delta_time: Duration,
     ) -> Result<MainState, String> {
-        for event in event_pump.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit { .. }
-                | sdl2::event::Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => return Ok(MainState::Exit),
-                _ => {}
+        self.delta_second = delta_time;
+
+        match self.state {
+            GameState::Menu => {
+                if let Some(new_state) = self.update_game(event_pump) {
+                    self.state = new_state;
+                }
             }
+            GameState::NewGame => {
+                *self = Game::new();
+                self.state = GameState::Playing;
+            }
+            GameState::Playing => {
+                if let Some(game_state) = self.update_game(event_pump) {
+                    self.state = game_state;
+                }
+            }
+            GameState::OutOfFuel | GameState::JobsDone | GameState::MeteorHit => {
+                self.meteors.clear();
+                if let Some(new_state) = self.update_game(event_pump) {
+                    self.state = new_state;
+                }
+            }
+            GameState::ExitGame => return Ok(MainState::Exit),
         }
+
         Ok(MainState::Running)
     }
 
     fn draw(
         &mut self,
         canvas: &mut Canvas<Window>,
-        texture_manager: &AssetManager,
+        _texture_manager: &AssetManager,
     ) -> Result<(), String> {
+        match self.state {
+            GameState::Menu => {
+                MainMenu::draw(canvas)?;
+                canvas.present();
+            }
+            GameState::OutOfFuel | GameState::JobsDone | GameState::MeteorHit => {
+                GameOverMenu::draw(self, canvas)?;
+                canvas.present();
+            }
+            _ => {
+                self.draw_game(canvas)?;
+            }
+        }
         Ok(())
     }
 }

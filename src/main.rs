@@ -5,6 +5,8 @@ use crate::viper::*;
 mod constants;
 mod entity;
 mod game;
+mod setup;
+mod ui;
 mod viper;
 
 fn main() -> Result<(), String> {
