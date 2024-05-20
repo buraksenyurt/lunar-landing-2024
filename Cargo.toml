@@ -8,3 +8,5 @@ authors = ["Burak Selim Senyurt"]
 [dependencies]
 rand = "0.8.5"
 sdl2 = { version = "0.36.0", features = ["ttf", "image"] }
+serde = { version = "1.0.202", features = ["derive"] }
+toml = "0.8.13"
