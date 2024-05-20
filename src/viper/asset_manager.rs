@@ -9,6 +9,7 @@ pub struct AssetManager<'a> {
     textures: HashMap<String, Texture<'a>>,
 }
 
+#[allow(dead_code)]
 impl<'a> AssetManager<'a> {
     pub fn new(texture_creator: &'a TextureCreator<WindowContext>) -> Self {
         let mut textures = HashMap::new();

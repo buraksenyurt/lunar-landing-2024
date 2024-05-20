@@ -29,6 +29,7 @@ pub struct Location {
     pub x: i32,
     pub y: i32,
 }
+#[allow(dead_code)]
 impl Location {
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
@@ -40,6 +41,7 @@ pub struct Rectangle {
     pub dimension: Dimension,
 }
 
+#[allow(dead_code)]
 impl Rectangle {
     pub fn new(location: Location, dimension: Dimension) -> Self {
         Self {

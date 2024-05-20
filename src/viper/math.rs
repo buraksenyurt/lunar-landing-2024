@@ -3,6 +3,7 @@ use sdl2::rect::Point;
 
 pub struct Math;
 
+#[allow(dead_code)]
 impl Math {
     pub fn get_index(x: u32, y: u32, dimension: Dimension, col_count: u32) -> u32 {
         (y / dimension.height) * col_count + (x / dimension.width)
