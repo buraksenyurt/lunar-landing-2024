@@ -3,11 +3,12 @@ use crate::game::Game;
 use crate::viper::*;
 
 mod constants;
+mod entity;
 mod game;
 mod viper;
 
 fn main() -> Result<(), String> {
-    let game = Game::default();
+    let game = Game::new();
     let screen = Screen::new(
         "Lunar Landing 2024".to_string(),
         Dimension::new(SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32),
