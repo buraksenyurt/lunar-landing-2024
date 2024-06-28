@@ -2,6 +2,19 @@
 
 Versiyon 1.0
 
+![Runtime](./docs/runtime_01.png)
+
+- [Lunar Landing Game Design Document](#lunar-landing-game-design-document)
+  - [Oyun Tanımı](#oyun-tanımı)
+  - [Oyunun Amacı](#oyunun-amacı)
+  - [Oyun Dünyası](#oyun-dünyası)
+  - [Oyun Mekanikleri](#oyun-mekanikleri)
+  - [Karakterler](#karakterler)
+  - [Görsel ve Ses Tasarımı](#görsel-ve-ses-tasarımı)
+  - [Kullanıcı Arayüzü ve Deneyimi](#kullanıcı-arayüzü-ve-deneyimi)
+  - [Geliştirme Takvimi](#geliştirme-takvimi)
+  - [Teknik Detay](#teknik-detay)
+
 ## Oyun Tanımı
 
 - **Adı  :** Lunar Landing
@@ -17,10 +30,10 @@ Versiyon 1.0
 
 - **Mekan :** Oyunun hikayesi ay yüzeyinde geçmektedir.
 - **Kurallar :** Oyunun temel kuralları aşağıdaki gibidir.
-    - Her başlangıçta gezegen yüzeyi rastgele çizilir ve iniş pistleri rastgele konumlanır. Oyuncu bu pistlerden birine inerse görev başarılı tamamlanır.
-    - Gezegen yüzeyine rastgele zamanlarda farklı boyutlarda göktaşları düşer. Oyuncu bunlara yakalanırsa oyunu kaybeder.
-    - Oyun başlangıcında mekiğin on bin birim yakıtı vardır. Yakıt sürekli azalır. Bazı manevralar daha çok yakıt harcanmasına neden olur. Oyuncu bir iniş pistine ulaşamadan yakıtı biterse oyunu kaybeder.
-    - Mekik belli bir irtifanın altına indiğinde ikaz ışığı yanar. İniş pisti yerine gezegen zeminininin sıfır noktasına gelirse oyunu kaybeder.
+  - Her başlangıçta gezegen yüzeyi rastgele çizilir ve iniş pistleri rastgele konumlanır. Oyuncu bu pistlerden birine inerse görev başarılı tamamlanır.
+  - Gezegen yüzeyine rastgele zamanlarda farklı boyutlarda göktaşları düşer. Oyuncu bunlara yakalanırsa oyunu kaybeder.
+  - Oyun başlangıcında mekiğin on bin birim yakıtı vardır. Yakıt sürekli azalır. Bazı manevralar daha çok yakıt harcanmasına neden olur. Oyuncu bir iniş pistine ulaşamadan yakıtı biterse oyunu kaybeder.
+  - Mekik belli bir irtifanın altına indiğinde ikaz ışığı yanar. İniş pisti yerine gezegen zeminininin sıfır noktasına gelirse oyunu kaybeder.
 
 ## Oyun Mekanikleri
 
@@ -69,12 +82,12 @@ Yakıt bitmesi
 ## Teknik Detay
 
 - **Domain Kurgusu :** Oyunda kullanılan veri modelleri aşağıdaki gibidir.
-    - Shuttle(Struct) : Mekiğe ait bilgiler.
-    - LandingPlatform(Struct) : İniş pisti.
-    - Meteor(Struct) : Göktaşı.
-    - Hud(Struct) : Head Up Display. Skor ve gösterge bilgileri.
-    - GameState(Enum) : Oyun zamanı durumları.
-    - Game(Struct) : Temel oyun yöneticisi.
+  - Shuttle(Struct) : Mekiğe ait bilgiler.
+  - LandingPlatform(Struct) : İniş pisti.
+  - Meteor(Struct) : Göktaşı.
+  - Hud(Struct) : Head Up Display. Skor ve gösterge bilgileri.
+  - GameState(Enum) : Oyun zamanı durumları.
+  - Game(Struct) : Temel oyun yöneticisi.
 
 - **Çarpışma Tespiti :** Oyundaki görevi başarıyla tamamlayabilmek için öncelikle mekiğin herhangi bir meteora çarpmadan ve yakıtı bitmeden belirlenen iniş pistlerinden birisine inebilmelidir. Meteor'ların mekiğe çarpıp çarpmadığını anlamak için merkez noktaları arasındaki öklid mesafesinin yarıçapların toplamı ile kıyaslanmasından yararlanılmıştır. Aşağıdaki şekilde bu durum ele alınmaktadır.
 
